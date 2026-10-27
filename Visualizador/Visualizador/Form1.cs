@@ -476,5 +476,318 @@ namespace Visualizador
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information);
         }
+
+        // ACTIVIDAD: Filtro de Box (Box Blur) con kernel de tamaño configurable
+        private void button9_Click(object sender, EventArgs e)
+        {
+            // Validamos que haya una imagen cargada
+            if (pictureBox1.Image == null)
+            {
+                MessageBox.Show("Por favor, carga una imagen primero (Botón 1).", "Sin imagen", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Tamaño del kernel (debe ser impar: 3, 5, 7...)
+            int tamanoKernel = 3;
+
+            this.Text = "Aplicando filtro Box... Por favor espera.";
+            Application.DoEvents();
+
+            Bitmap imagenOriginal = new Bitmap(pictureBox1.Image);
+            Bitmap imagenBox = AplicarFiltroBox(imagenOriginal, tamanoKernel);
+
+            pictureBox1.Image = imagenBox;
+            this.Text = "Filtro Box Terminado";
+
+            MessageBox.Show("El filtro Box (" + tamanoKernel + "x" + tamanoKernel + ") se aplicó correctamente.",
+                            "Proceso Completado",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+        }
+
+        public Bitmap AplicarFiltroBox(Bitmap origen, int tamanoKernel)
+        {
+            // Kernel Box: todos los pesos son iguales a 1 / (n*n)
+            // Para 3x3 sería:
+            //   1/9 1/9 1/9
+            //   1/9 1/9 1/9
+            //   1/9 1/9 1/9
+            double[,] kernel = new double[tamanoKernel, tamanoKernel];
+            double peso = 1.0 / (tamanoKernel * tamanoKernel);
+
+            for (int i = 0; i < tamanoKernel; i++)
+                for (int j = 0; j < tamanoKernel; j++)
+                    kernel[i, j] = peso;
+
+            int radio = tamanoKernel / 2;
+            Bitmap destino = new Bitmap(origen.Width, origen.Height);
+
+            for (int x = 0; x < origen.Width; x++)
+            {
+                for (int y = 0; y < origen.Height; y++)
+                {
+                    double sumaR = 0, sumaG = 0, sumaB = 0;
+                    double pesoAcumulado = 0;
+
+                    // Recorremos la ventana / kernel alrededor del píxel (x, y)
+                    for (int i = -radio; i <= radio; i++)
+                    {
+                        for (int j = -radio; j <= radio; j++)
+                        {
+                            int nx = x + i;
+                            int ny = y + j;
+
+                            // Protegemos los bordes de la imagen
+                            if (nx >= 0 && nx < origen.Width && ny >= 0 && ny < origen.Height)
+                            {
+                                Color pixelVecino = origen.GetPixel(nx, ny);
+                                double w = kernel[i + radio, j + radio];
+
+                                sumaR += pixelVecino.R * w;
+                                sumaG += pixelVecino.G * w;
+                                sumaB += pixelVecino.B * w;
+                                pesoAcumulado += w;
+                            }
+                        }
+                    }
+
+                    // Normalizamos por si en los bordes faltaron vecinos (los pesos no suman 1)
+                    int nuevoR = (int)Math.Round(sumaR / pesoAcumulado, MidpointRounding.AwayFromZero);
+                    int nuevoG = (int)Math.Round(sumaG / pesoAcumulado, MidpointRounding.AwayFromZero);
+                    int nuevoB = (int)Math.Round(sumaB / pesoAcumulado, MidpointRounding.AwayFromZero);
+
+                    nuevoR = Math.Clamp(nuevoR, 0, 255);
+                    nuevoG = Math.Clamp(nuevoG, 0, 255);
+                    nuevoB = Math.Clamp(nuevoB, 0, 255);
+
+                    destino.SetPixel(x, y, Color.FromArgb(nuevoR, nuevoG, nuevoB));
+                }
+            }
+
+            return destino;
+        }
+
+        // ACTIVIDAD: Filtro Gaussiano (Gaussian Blur)
+        private void button10_Click(object sender, EventArgs e)
+        {
+            if (pictureBox1.Image == null)
+            {
+                MessageBox.Show("Por favor, carga una imagen primero (Botón 1).", "Sin imagen", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Tamaño del kernel (impar: 3, 5, 7...) y desviación estándar
+            int tamanoKernel = 5;
+            double sigma = 1.0;
+
+            this.Text = "Aplicando filtro Gauss... Por favor espera.";
+            Application.DoEvents();
+
+            Bitmap imagenOriginal = new Bitmap(pictureBox1.Image);
+            Bitmap imagenGauss = AplicarFiltroGauss(imagenOriginal, tamanoKernel, sigma);
+
+            pictureBox1.Image = imagenGauss;
+            this.Text = "Filtro Gauss Terminado";
+
+            MessageBox.Show("El filtro Gauss (" + tamanoKernel + "x" + tamanoKernel + ", sigma = " + sigma + ") se aplicó correctamente.",
+                            "Proceso Completado",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+        }
+
+        // Genera el kernel Gaussiano normalizado (la suma de todos sus pesos es 1)
+        public double[,] GenerarKernelGauss(int tamanoKernel, double sigma)
+        {
+            double[,] kernel = new double[tamanoKernel, tamanoKernel];
+            int radio = tamanoKernel / 2;
+            double suma = 0;
+
+            for (int i = -radio; i <= radio; i++)
+            {
+                for (int j = -radio; j <= radio; j++)
+                {
+                    // G(x,y) = e^( -(x² + y²) / (2σ²) )
+                    // (la constante 1/(2πσ²) se cancela al normalizar)
+                    double valor = Math.Exp(-((i * i) + (j * j)) / (2 * sigma * sigma));
+                    kernel[i + radio, j + radio] = valor;
+                    suma += valor;
+                }
+            }
+
+            // Normalizamos para que los pesos sumen 1
+            for (int i = 0; i < tamanoKernel; i++)
+                for (int j = 0; j < tamanoKernel; j++)
+                    kernel[i, j] /= suma;
+
+            return kernel;
+        }
+
+        public Bitmap AplicarFiltroGauss(Bitmap origen, int tamanoKernel, double sigma)
+        {
+            double[,] kernel = GenerarKernelGauss(tamanoKernel, sigma);
+            int radio = tamanoKernel / 2;
+            Bitmap destino = new Bitmap(origen.Width, origen.Height);
+
+            for (int x = 0; x < origen.Width; x++)
+            {
+                for (int y = 0; y < origen.Height; y++)
+                {
+                    double sumaR = 0, sumaG = 0, sumaB = 0;
+                    double pesoAcumulado = 0;
+
+                    for (int i = -radio; i <= radio; i++)
+                    {
+                        for (int j = -radio; j <= radio; j++)
+                        {
+                            int nx = x + i;
+                            int ny = y + j;
+
+                            // Protegemos los bordes de la imagen
+                            if (nx >= 0 && nx < origen.Width && ny >= 0 && ny < origen.Height)
+                            {
+                                Color pixelVecino = origen.GetPixel(nx, ny);
+                                double w = kernel[i + radio, j + radio];
+
+                                sumaR += pixelVecino.R * w;
+                                sumaG += pixelVecino.G * w;
+                                sumaB += pixelVecino.B * w;
+                                pesoAcumulado += w;
+                            }
+                        }
+                    }
+
+                    // Re-normalizamos en los bordes, donde faltan vecinos
+                    int nuevoR = (int)Math.Round(sumaR / pesoAcumulado, MidpointRounding.AwayFromZero);
+                    int nuevoG = (int)Math.Round(sumaG / pesoAcumulado, MidpointRounding.AwayFromZero);
+                    int nuevoB = (int)Math.Round(sumaB / pesoAcumulado, MidpointRounding.AwayFromZero);
+
+                    nuevoR = Math.Clamp(nuevoR, 0, 255);
+                    nuevoG = Math.Clamp(nuevoG, 0, 255);
+                    nuevoB = Math.Clamp(nuevoB, 0, 255);
+
+                    destino.SetPixel(x, y, Color.FromArgb(nuevoR, nuevoG, nuevoB));
+                }
+            }
+
+            return destino;
+        }
+
+        // ACTIVIDAD: Filtro Laplaciano - detección de bordes
+        private void button11_Click(object sender, EventArgs e)
+        {
+            if (pictureBox1.Image == null)
+            {
+                MessageBox.Show("Por favor, carga una imagen primero (Botón 1).", "Sin imagen", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            this.Text = "Aplicando filtro Laplace... Por favor espera.";
+            Application.DoEvents();
+
+            Bitmap imagenOriginal = new Bitmap(pictureBox1.Image);
+
+            // incluirDiagonales: false = kernel de 4 vecinos, true = kernel de 8 vecinos
+            // realzar: false = solo bordes, true = imagen original + bordes (más nítida)
+            Bitmap imagenLaplace = AplicarFiltroLaplace(imagenOriginal, false, false);
+
+            pictureBox1.Image = imagenLaplace;
+            this.Text = "Filtro Laplace Terminado";
+
+            MessageBox.Show("El filtro Laplace (detección de bordes) se aplicó correctamente.",
+                            "Proceso Completado",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+        }
+
+        // Realce de nitidez: resta el Laplaciano a la imagen original
+        private void button12_Click(object sender, EventArgs e)
+        {
+            if (pictureBox1.Image == null)
+            {
+                MessageBox.Show("Por favor, carga una imagen primero (Botón 1).", "Sin imagen", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            this.Text = "Realzando con Laplace... Por favor espera.";
+            Application.DoEvents();
+
+            Bitmap imagenOriginal = new Bitmap(pictureBox1.Image);
+            Bitmap imagenRealzada = AplicarFiltroLaplace(imagenOriginal, false, true);
+
+            pictureBox1.Image = imagenRealzada;
+            this.Text = "Realce Laplace Terminado";
+
+            MessageBox.Show("El realce con Laplace se aplicó correctamente.",
+                            "Proceso Completado",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+        }
+
+        public Bitmap AplicarFiltroLaplace(Bitmap origen, bool incluirDiagonales, bool realzar)
+        {
+            // Kernel Laplaciano (la suma de sus pesos es 0)
+            //  4 vecinos:        8 vecinos:
+            //   0  1  0           1  1  1
+            //   1 -4  1           1 -8  1
+            //   0  1  0           1  1  1
+            int[,] kernel = incluirDiagonales
+                ? new int[,] { { 1, 1, 1 }, { 1, -8, 1 }, { 1, 1, 1 } }
+                : new int[,] { { 0, 1, 0 }, { 1, -4, 1 }, { 0, 1, 0 } };
+
+            int ancho = origen.Width;
+            int alto = origen.Height;
+
+            // 1. El Laplaciano trabaja sobre intensidad, así que pasamos la imagen a gris
+            //    (reutilizamos tu función CalcularValorGris)
+            int[,] gris = new int[ancho, alto];
+            for (int x = 0; x < ancho; x++)
+            {
+                for (int y = 0; y < alto; y++)
+                {
+                    Color p = origen.GetPixel(x, y);
+                    gris[x, y] = CalcularValorGris(p.R, p.G, p.B);
+                }
+            }
+
+            // 2. Aplicamos la convolución
+            Bitmap destino = new Bitmap(ancho, alto);
+
+            for (int x = 0; x < ancho; x++)
+            {
+                for (int y = 0; y < alto; y++)
+                {
+                    int suma = 0;
+
+                    for (int i = -1; i <= 1; i++)
+                    {
+                        for (int j = -1; j <= 1; j++)
+                        {
+                            // En los bordes repetimos el píxel más cercano
+                            int nx = Math.Clamp(x + i, 0, ancho - 1);
+                            int ny = Math.Clamp(y + j, 0, alto - 1);
+
+                            suma += gris[nx, ny] * kernel[i + 1, j + 1];
+                        }
+                    }
+
+                    int resultado;
+                    if (realzar)
+                    {
+                        // Con centro negativo, la imagen nítida es: original - Laplaciano
+                        resultado = gris[x, y] - suma;
+                    }
+                    else
+                    {
+                        // El Laplaciano puede dar negativos: usamos el valor absoluto
+                        resultado = Math.Abs(suma);
+                    }
+
+                    resultado = Math.Clamp(resultado, 0, 255);
+                    destino.SetPixel(x, y, Color.FromArgb(resultado, resultado, resultado));
+                }
+            }
+
+            return destino;
+        }
     }
 }

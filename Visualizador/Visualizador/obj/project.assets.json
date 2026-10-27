@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\kuroh\\Documents\\Visualizador\\Visualizador\\Visualizador.csproj",
+      "projectUniqueName": "C:\\Users\\kuroh\\Documents\\GitHub\\Visualizador-PDI\\Visualizador\\Visualizador\\Visualizador.csproj",
       "projectName": "Visualizador",
-      "projectPath": "C:\\Users\\kuroh\\Documents\\Visualizador\\Visualizador\\Visualizador.csproj",
+      "projectPath": "C:\\Users\\kuroh\\Documents\\GitHub\\Visualizador-PDI\\Visualizador\\Visualizador\\Visualizador.csproj",
       "packagesPath": "C:\\Users\\kuroh\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\kuroh\\Documents\\Visualizador\\Visualizador\\obj\\",
+      "outputPath": "C:\\Users\\kuroh\\Documents\\GitHub\\Visualizador-PDI\\Visualizador\\Visualizador\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

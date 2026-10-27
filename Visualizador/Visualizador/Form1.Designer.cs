@@ -38,6 +38,10 @@
             button6 = new Button();
             button7 = new Button();
             button8 = new Button();
+            button9 = new Button();
+            button10 = new Button();
+            button11 = new Button();
+            button12 = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBoxLienzo).BeginInit();
             SuspendLayout();
@@ -139,11 +143,55 @@
             button8.UseVisualStyleBackColor = true;
             button8.Click += button8_Click;
             // 
+            // button9
+            // 
+            button9.Location = new Point(323, 248);
+            button9.Name = "button9";
+            button9.Size = new Size(134, 23);
+            button9.TabIndex = 10;
+            button9.Text = "Filtro Box";
+            button9.UseVisualStyleBackColor = true;
+            button9.Click += button9_Click;
+            // 
+            // button10
+            // 
+            button10.Location = new Point(479, 35);
+            button10.Name = "button10";
+            button10.Size = new Size(134, 23);
+            button10.TabIndex = 11;
+            button10.Text = "Filtro Gauss";
+            button10.UseVisualStyleBackColor = true;
+            button10.Click += button10_Click;
+            // 
+            // button11
+            // 
+            button11.Location = new Point(479, 66);
+            button11.Name = "button11";
+            button11.Size = new Size(134, 23);
+            button11.TabIndex = 12;
+            button11.Text = "Laplace Bordes";
+            button11.UseVisualStyleBackColor = true;
+            button11.Click += button11_Click;
+            // 
+            // button12
+            // 
+            button12.Location = new Point(479, 96);
+            button12.Name = "button12";
+            button12.Size = new Size(134, 23);
+            button12.TabIndex = 13;
+            button12.Text = "Laplace Realzar";
+            button12.UseVisualStyleBackColor = true;
+            button12.Click += button12_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(964, 450);
+            Controls.Add(button12);
+            Controls.Add(button11);
+            Controls.Add(button10);
+            Controls.Add(button9);
             Controls.Add(button8);
             Controls.Add(button7);
             Controls.Add(button6);
@@ -173,5 +221,9 @@
         private Button button6;
         private Button button7;
         private Button button8;
+        private Button button9;
+        private Button button10;
+        private Button button11;
+        private Button button12;
     }
 }
